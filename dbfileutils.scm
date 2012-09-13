@@ -62,3 +62,24 @@
 		)
 	)
 ))
+
+; This function removes a word to a sorted file opened in a port(port-read) 
+; and copies the file to another opened port (port-add)
+(define remove-from-file (lambda (port-read port-write word)  
+	(let ((obj (read port-read))) 
+		(cond 
+			((eof-object? obj) (begin 
+				(close-output-port port-write) 
+				(close-input-port port-read)
+			)) 			
+			((string=? word (symbol->string obj))(begin 
+				(remove-from-file port-read port-write word)
+			))
+			(else 
+				(display obj port-write)
+				(display "\n" port-write)
+				(remove-from-file port-read port-write word)
+			)
+		)
+	)
+))

@@ -42,13 +42,27 @@
 	(newline)
 ))
 
+; This function lookup for a data filename (dat) in a repository file (rep)
+; If the data file exists in the repository file, the data file will be removed from the repository file
+; The params should be the name of the files
+; Command-line usage: ./dbmgr remove <dat> from <rep>
 (define fn-remove (lambda (dat rep)
-	(display dat) (newline)
-	(display rep) (newline)
+	(if (find-in-file dat (open-input-file rep))
+		(begin
+			(rename-file rep (string-append "temp" rep))
+			(remove-from-file (open-input-file (string-append "temp" rep)) (open-output-file rep) dat)
+			(delete-file (string-append "temp" rep))
+			(display (string-append "The data file '" dat "' was removed from the repository file '" rep "'"))
+		)
+		(display (string-append "The data file '" dat "' is NOT listed on the repository file '" rep "'"))
+		
+	)
+	(newline)
 ))
 
 (define fn-list (lambda (rep)
-	(display rep) (newline)
+	(print-file (open-input-file rep))
+	(newline)
 ))
 
 (define fn-duplicate (lambda (dat1 dat2 rep)
