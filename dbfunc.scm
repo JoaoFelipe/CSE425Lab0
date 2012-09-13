@@ -1,31 +1,10 @@
 ; dbfunc.scm
 
-; This function searchs for a data filename (dat) in a opened port of a repository file (rep-port)
-; The repository file should be sorted
-(define find-in-file (lambda (dat rep-port)  
-		(let ((obj (read rep-port))) 
-			(cond 
-				((eof-object? obj) 
-					(begin
-						(close-input-port rep-port)
-						#f
-					)
-				) 
-				(else 
-					(cond
-						((string=? dat (symbol->string obj)) #t)
-						((string<? dat (symbol->string obj)) #f)
-						(else
-							(find-in-file dat rep-port)
-						)
-					)
-				)
-			)
-		)
-))
+(include "dbfileutils.scm")
 
 ; This function lookup for a data filename (dat) in a repository file (rep)
 ; The params should be the name of the files
+; Command-line usage: ./dbmgr lookup <dat> in <rep>
 (define fn-lookup (lambda (dat rep)
 	(if (find-in-file dat (open-input-file rep))
 		(display (string-append "The data file '" dat "' is listed on the repository file '" rep "'")) 
@@ -34,9 +13,16 @@
 	(newline)
 ))
 
+; This function lookup for a data filename (dat) in a repository file (rep)
+; If the data file exists in the repository file, a verbatim listing of the data file is displayed
+; The params should be the name of the files
+; Command-line usage: ./dbmgr print <dat> of <rep>
 (define fn-print (lambda (dat rep)
-	(display dat) (newline)
-	(display rep) (newline)
+	(if (find-in-file dat (open-input-file rep))
+		(print-file (open-input-file dat))
+		(display (string-append "The data file '" dat "' is NOT listed on the repository file '" rep "'"))
+	)
+	(newline)
 ))
 
 (define fn-register (lambda (dat rep)
