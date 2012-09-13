@@ -33,9 +33,17 @@
 	)
 ))
 
+
+; This function adds a word to a sorted file 
+(define add-to-file (lambda (file word)
+	(rename-file file (string-append "temp" file))
+	(add-to-new-file (open-input-file (string-append "temp" file)) (open-output-file file) word #f)
+	(delete-file (string-append "temp" file))
+))
+
 ; This function adds a word to a sorted file opened in a port(port-read) 
 ; and copies the file to another opened port (port-add)
-(define add-to-file (lambda (port-read port-write word added)  
+(define add-to-new-file (lambda (port-read port-write word added)  
 	(let ((obj (read port-read))) 
 		(cond 
 			((and (eof-object? obj) (not added)) (begin 
@@ -52,20 +60,28 @@
 				(display "\n" port-write)
 				(display obj port-write)
 				(display "\n" port-write)
-				(add-to-file port-read port-write word #t)
+				(add-to-new-file port-read port-write word #t)
 			))
 			(else 
 				(display obj port-write)
 				(display "\n" port-write)
-				(add-to-file port-read port-write word added)
+				(add-to-new-file port-read port-write word added)
 			)
 		)
 	)
 ))
 
-; This function removes a word to a sorted file opened in a port(port-read) 
+
+; This function removes a word from a sorted file 
+(define remove-from-file (lambda (file word)
+	(rename-file file (string-append "temp" file))
+	(remove-from-new-file (open-input-file (string-append "temp" file)) (open-output-file file) word)
+	(delete-file (string-append "temp" file))
+))
+
+; This function removes a word from a sorted file opened in a port(port-read) 
 ; and copies the file to another opened port (port-add)
-(define remove-from-file (lambda (port-read port-write word)  
+(define remove-from-new-file (lambda (port-read port-write word)  
 	(let ((obj (read port-read))) 
 		(cond 
 			((eof-object? obj) (begin 
@@ -73,12 +89,12 @@
 				(close-input-port port-read)
 			)) 			
 			((string=? word (symbol->string obj))(begin 
-				(remove-from-file port-read port-write word)
+				(remove-from-new-file port-read port-write word)
 			))
 			(else 
 				(display obj port-write)
 				(display "\n" port-write)
-				(remove-from-file port-read port-write word)
+				(remove-from-new-file port-read port-write word)
 			)
 		)
 	)

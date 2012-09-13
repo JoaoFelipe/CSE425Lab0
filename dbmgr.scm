@@ -16,7 +16,7 @@
 ))
 
 ; This function verifies if the file with the given extension exists and if it is the expected extension
-(define extension (lambda (file ext)
+(define extension (lambda (file ext existence)
 	(and 
 		(if (and
 				(> (string-length file) (string-length ext))
@@ -25,23 +25,39 @@
 			(display "The file ") (display file) (display " doesn't have the expected extension") (newline)
 			#f
 		))
-			
-		(if (file-exists? file) #t (begin
-			(display "The file ") (display file) (display " doesn't exist") (newline)
-			#f
-		))
+		(or 	
+			existence
+			(if (file-exists? file) #t (begin
+				(display "The file ") (display file) (display " doesn't exist") (newline)
+				#f
+			))
+		)
 	)
 ))
 
-; This function verifies if the .dat file exists
+; This function verifies if the file is .dat 
 (define dat? (lambda (file)
-	(extension file ".dat")
+	(extension file ".dat" #t)
 ))
 
-; This function verifies if the .rep file exists
-(define rep? (lambda (file)
-	(extension file ".rep")
+; This function verifies if the file is .dat and exists 
+(define dat-exists? (lambda (file)
+	(extension file ".dat" #f)
 ))
+
+; This function verifies if the file is .dat and doesnt exist 
+(define dat-doesnt-exist? (lambda (file)
+	(extension file ".dat" #t)
+	(if (file-exists? file) #t (begin
+		(display "The file ") (display file) (display " already exists") (newline)
+	))
+))
+
+; This function verifies if the file is .rep and exists
+(define rep-exists? (lambda (file)
+	(extension file ".rep" #f)
+))
+
 
 
 ; This function parses the command-line and executes the desired function if it is well formed
@@ -57,7 +73,7 @@
 					(= (length line) 5)				
 					(dat? (list-ref line 2))
 					(string=? (list-ref line 3) "in") 
-					(rep? (list-ref line 4))
+					(rep-exists? (list-ref line 4))
 				) 
 				(fn-lookup (list-ref line 2) (list-ref line 4)) 
 				(helpful-message (car line))
@@ -68,7 +84,7 @@
 					(= (length line) 5)			
 					(dat? (list-ref line 2))
 					(string=? (list-ref line 3) "of") 
-					(rep? (list-ref line 4))
+					(rep-exists? (list-ref line 4))
 				) 
 				(fn-print (list-ref line 2) (list-ref line 4)) 
 				(helpful-message (car line))
@@ -77,9 +93,9 @@
 		((string=? (list-ref line 1) "register") 
 			(if (and 
 					(= (length line) 5)
-					(dat? (list-ref line 2))
+					(dat-exists? (list-ref line 2)) ; it is only possible to register files that exists
 					(string=? (list-ref line 3) "with")
-					(rep? (list-ref line 4))
+					(rep-exists? (list-ref line 4))
 				) 
 				(fn-register (list-ref line 2) (list-ref line 4)) 
 				(helpful-message (car line))
@@ -90,7 +106,7 @@
 					(= (length line) 5)
 					(dat? (list-ref line 2))
 					(string=? (list-ref line 3) "from") 
-					(rep? (list-ref line 4))
+					(rep-exists? (list-ref line 4))
 				) 
 				(fn-remove (list-ref line 2) (list-ref line 4)) 
 				(helpful-message (car line))
@@ -99,7 +115,7 @@
 		((string=? (list-ref line 1) "list") 
 			(if (and
 					(= (length line) 3)
-					(rep? (list-ref line 2))
+					(rep-exists? (list-ref line 2))
 				)
 				(fn-list (list-ref line 2)) 
 				(helpful-message (car line))
@@ -108,11 +124,11 @@
 		((string=? (list-ref line 1) "duplicate") 
 			(if (and 
 					(= (length line) 7)
-					(dat? (list-ref line 2))
+					(dat-exists? (list-ref line 2))
 					(string=? (list-ref line 3) "to") 
-					(dat? (list-ref line 4))
+					(dat-doesnt-exist? (list-ref line 4))
 					(string=? (list-ref line 5) "within") 
-					(rep? (list-ref line 6))
+					(rep-exists? (list-ref line 6))
 				) 
 				(fn-duplicate (list-ref line 2) (list-ref line 4) (list-ref line 6)) 
 				(helpful-message (car line))

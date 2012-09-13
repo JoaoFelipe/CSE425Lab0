@@ -33,9 +33,7 @@
 	(if (find-in-file dat (open-input-file rep))
 		(display (string-append "The data file '" dat "' is ALREADY listed on the repository file '" rep "'"))
 		(begin
-			(rename-file rep (string-append "temp" rep))
-			(add-to-file (open-input-file (string-append "temp" rep)) (open-output-file rep) dat #f)
-			(delete-file (string-append "temp" rep))
+			(add-to-file rep dat)
 			(display (string-append "The data file '" dat "' was added to the repository file '" rep "'"))
 		)
 	)
@@ -49,9 +47,7 @@
 (define fn-remove (lambda (dat rep)
 	(if (find-in-file dat (open-input-file rep))
 		(begin
-			(rename-file rep (string-append "temp" rep))
-			(remove-from-file (open-input-file (string-append "temp" rep)) (open-output-file rep) dat)
-			(delete-file (string-append "temp" rep))
+			(remove-from-file rep dat)
 			(display (string-append "The data file '" dat "' was removed from the repository file '" rep "'"))
 		)
 		(display (string-append "The data file '" dat "' is NOT listed on the repository file '" rep "'"))
@@ -60,13 +56,29 @@
 	(newline)
 ))
 
+; This function display a list of data files that are present on the repository file
+; The param should be the name of the repository file
+; Command-line usage: ./dbmgr list <rep>
 (define fn-list (lambda (rep)
 	(print-file (open-input-file rep))
 	(newline)
 ))
 
+
 (define fn-duplicate (lambda (dat1 dat2 rep)
-	(display dat1) (newline)
-	(display dat2) (newline)
-	(display rep) (newline)
+	(cond 
+		((not (find-in-file dat1 (open-input-file rep))) 
+			(display (string-append "The data file 1 '" dat1 "' is NOT listed on the repository file '" rep "'"))
+		)
+		((find-in-file dat2 (open-input-file rep)) 
+			(display (string-append "The data file 2 '" dat2 "' is ALREADY listed on the repository file '" rep "'"))
+		)
+		(else 
+			(copy-file dat1 dat2)
+			(add-to-file rep dat2)
+			(display (string-append "The data file 1 '" dat1 "' was duplicated into the data file 2 '" dat2 "'"))
+		)
+		
+	)
+	(newline)
 ))
