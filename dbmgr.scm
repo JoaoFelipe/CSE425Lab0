@@ -1,3 +1,10 @@
+; dbmgr.scm
+; This file has the functions that parses the command line 
+
+(include "dbfunc.scm")
+
+; This function prints out a helpful message telling the user how to run the program
+; The param should be the list of command line arguments
 (define helpful-message (lambda (line)
 	(let ((name (car line)))
 		(begin
@@ -10,77 +17,108 @@
 			(display "    ") (display name) (display " duplicate <dat1> to <dat2> within <rep1>") (newline)
 		)
 	)
-	(display (car line))
 ))
 
-(define fn-lookup (lambda (dat rep)
-	(display dat) (newline)
-	(display rep) (newline)
+; This function verifies if the file with the given extension exists and if it is the expected extension
+(define extension (lambda (file ext)
+	(and 
+		(if (and
+				(> (string-length file) (string-length ext))
+				(string=? (substring file (- (string-length file) (string-length ext)) (string-length file)) ext)
+			) #t (begin
+			(display "The file ") (display file) (display " doesn't have the expected extension") (newline)
+			#f
+		))
+			
+		(if (file-exists? file) #t (begin
+			(display "The file ") (display file) (display " doesn't exist") (newline)
+			#f
+		))
+	)
 ))
 
-(define fn-print (lambda (dat rep)
-	(display dat) (newline)
-	(display rep) (newline)
+; This function verifies if the .dat file exists
+(define dat? (lambda (file)
+	(extension file ".dat")
 ))
 
-(define fn-register (lambda (dat rep)
-	(display dat) (newline)
-	(display rep) (newline)
+; This function verifies if the .rep file exists
+(define rep? (lambda (file)
+	(extension file ".rep")
 ))
 
-(define fn-remove (lambda (dat rep)
-	(display dat) (newline)
-	(display rep) (newline)
-))
 
-(define fn-list (lambda (rep)
-	(display rep) (newline)
-))
-
-(define fn-duplicate (lambda (dat1 dat2 rep)
-	(display dat1) (newline)
-	(display dat2) (newline)
-	(display rep) (newline)
-))
-
+; This function parses the command-line and executes the desired function if it is well formed
+; or executes the helpful-message function if it ins't
+; The param should be the list of command line arguments
 (define parse-command-line (lambda (line)
 	(cond
 		((< (length line) 3) 
 			(helpful-message line)
 		)
-		((string=? (cadr line) "lookup") 
-			(if (and (string=? (cadddr line) "in") (= (length line) 5)) 
-				(fn-lookup (caddr line) (cadddr (cdr line))) 
+		((string=? (list-ref line 1) "lookup") 
+			(if (and
+					(= (length line) 5)				
+					(dat? (list-ref line 2))
+					(string=? (list-ref line 3) "in") 
+					(rep? (list-ref line 4))
+				) 
+				(fn-lookup (list-ref line 2) (list-ref line 4)) 
 				(helpful-message line)
 			)
 		)
-		((string=? (cadr line) "print") 
-			(if (and (string=? (cadddr line) "of") (= (length line) 5)) 
-				(fn-print (caddr line) (cadddr (cdr line))) 
+		((string=? (list-ref line 1) "print") 
+			(if (and
+					(= (length line) 5)			
+					(dat? (list-ref line 2))
+					(string=? (list-ref line 3) "of") 
+					(rep? (list-ref line 4))
+				) 
+				(fn-print (list-ref line 2) (list-ref line 4)) 
 				(helpful-message line)
 			)
 		)
-		((string=? (cadr line) "register") 
-			(if (and (string=? (cadddr line) "with") (= (length line) 5)) 
-				(fn-register (caddr line) (cadddr (cdr line))) 
+		((string=? (list-ref line 1) "register") 
+			(if (and 
+					(= (length line) 5)
+					(dat? (list-ref line 2))
+					(string=? (list-ref line 3) "with")
+					(rep? (list-ref line 4))
+				) 
+				(fn-register (list-ref line 2) (list-ref line 4)) 
 				(helpful-message line)
 			)
 		)
-		((string=? (cadr line) "remove") 
-			(if (and (string=? (cadddr line) "from") (= (length line) 5)) 
-				(fn-remove (caddr line) (cadddr (cdr line))) 
+		((string=? (list-ref line 1) "remove") 
+			(if (and 
+					(= (length line) 5)
+					(dat? (list-ref line 2))
+					(string=? (list-ref line 3) "from") 
+					(rep? (list-ref line 4))
+				) 
+				(fn-remove (list-ref line 2) (list-ref line 4)) 
 				(helpful-message line)
 			)
 		)
-		((string=? (cadr line) "list") 
-			(if (= (length line) 3) 
-				(fn-list (caddr line)) 
+		((string=? (list-ref line 1) "list") 
+			(if (and
+					(= (length line) 3)
+					(rep? (list-ref line 2))
+				)
+				(fn-list (list-ref line 2)) 
 				(helpful-message line)
 			)
 		)
-		((string=? (cadr line) "duplicate") 
-			(if (and (string=? (cadddr line) "to") (string=? (cadddr (cddr line)) "within") (= (length line) 7)) 
-				(fn-duplicate (caddr line) (cadddr (cdr line)) (cadddr (cdddr line))) 
+		((string=? (list-ref line 1) "duplicate") 
+			(if (and 
+					(= (length line) 7)
+					(dat? (list-ref line 2))
+					(string=? (list-ref line 3) "to") 
+					(dat? (list-ref line 4))
+					(string=? (list-ref line 5) "within") 
+					(rep? (list-ref line 6))
+				) 
+				(fn-duplicate (list-ref line 2) (list-ref line 4) (list-ref line 6)) 
 				(helpful-message line)
 			)
 		)
@@ -90,4 +128,5 @@
 	)
 ))
 
+; Main: executes the parse-command-line function
 (parse-command-line (command-line))
