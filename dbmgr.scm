@@ -57,10 +57,12 @@
 
 ; This function verifies if the file is .dat and doesnt exist 
 (define dat-doesnt-exist? (lambda (file)
-	(extension file ".dat" #t)
-	(if (file-exists? file) #t (begin
-		(display "The file '") (display file) (display "' already exists") (newline)
-	))
+	(and 
+		(extension file ".dat" #t)
+		(if (file-exists? file) (begin
+			(display "The file '") (display file) (display "' already exists") (newline) #f
+		) #t)
+	)
 ))
 
 ; This function verifies if the file is .rep and exists
