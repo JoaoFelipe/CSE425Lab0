@@ -1,10 +1,12 @@
 ; dbmgr.scm
+; Amanda Priscilla Araujo da Silva
+; Joao Felipe Nicolaci Pimentel
 ; This file has the functions that parses the command line 
 
 (include "dbfunc.scm")
 
 ; This function prints out a helpful message telling the user how to run the program
-; The param should be the list of command line arguments
+; The param should be the program name
 (define helpful-message (lambda (program-name)
 	(display "Usage information:") (newline)
 	(display "    ") (display program-name) (display " lookup <dat1> in <rep1>") (newline)
@@ -15,6 +17,14 @@
 	(display "    ") (display program-name) (display " duplicate <dat1> to <dat2> within <rep1>") (newline)
 ))
 
+; This function prints out a error message followed by a helpful message
+; The param should be the program name
+(define error-message (lambda (program-name)
+	(display "Error: Bad formed parameters") (newline)
+	(helpful-message program-name)
+))
+
+
 ; This function verifies if the file with the given extension exists and if it is the expected extension
 (define extension (lambda (file ext existence)
 	(and 
@@ -22,13 +32,13 @@
 				(> (string-length file) (string-length ext))
 				(string=? (substring file (- (string-length file) (string-length ext)) (string-length file)) ext)
 			) #t (begin
-			(display "The file ") (display file) (display " doesn't have the expected extension") (newline)
+			(display "The file '") (display file) (display "' doesn't have the expected extension") (newline)
 			#f
 		))
 		(or 	
 			existence
 			(if (file-exists? file) #t (begin
-				(display "The file ") (display file) (display " doesn't exist") (newline)
+				(display "The file '") (display file) (display "' doesn't exist") (newline)
 				#f
 			))
 		)
@@ -49,7 +59,7 @@
 (define dat-doesnt-exist? (lambda (file)
 	(extension file ".dat" #t)
 	(if (file-exists? file) #t (begin
-		(display "The file ") (display file) (display " already exists") (newline)
+		(display "The file '") (display file) (display "' already exists") (newline)
 	))
 ))
 
@@ -66,7 +76,7 @@
 (define parse-command-line (lambda (line)
 	(cond
 		((< (length line) 3) 
-			(helpful-message (car line))
+			(error-message (car line))
 		)
 		((string=? (list-ref line 1) "lookup") 
 			(if (and
@@ -76,18 +86,18 @@
 					(rep-exists? (list-ref line 4))
 				) 
 				(fn-lookup (list-ref line 2) (list-ref line 4)) 
-				(helpful-message (car line))
+				(error-message (car line))
 			)
 		)
 		((string=? (list-ref line 1) "print") 
 			(if (and
 					(= (length line) 5)			
-					(dat? (list-ref line 2))
+					(dat-exists? (list-ref line 2))
 					(string=? (list-ref line 3) "of") 
 					(rep-exists? (list-ref line 4))
 				) 
 				(fn-print (list-ref line 2) (list-ref line 4)) 
-				(helpful-message (car line))
+				(error-message (car line))
 			)
 		)
 		((string=? (list-ref line 1) "register") 
@@ -98,7 +108,7 @@
 					(rep-exists? (list-ref line 4))
 				) 
 				(fn-register (list-ref line 2) (list-ref line 4)) 
-				(helpful-message (car line))
+				(error-message (car line))
 			)
 		)
 		((string=? (list-ref line 1) "remove") 
@@ -109,7 +119,7 @@
 					(rep-exists? (list-ref line 4))
 				) 
 				(fn-remove (list-ref line 2) (list-ref line 4)) 
-				(helpful-message (car line))
+				(error-message (car line))
 			)
 		)
 		((string=? (list-ref line 1) "list") 
@@ -118,7 +128,7 @@
 					(rep-exists? (list-ref line 2))
 				)
 				(fn-list (list-ref line 2)) 
-				(helpful-message (car line))
+				(error-message (car line))
 			)
 		)
 		((string=? (list-ref line 1) "duplicate") 
@@ -131,11 +141,11 @@
 					(rep-exists? (list-ref line 6))
 				) 
 				(fn-duplicate (list-ref line 2) (list-ref line 4) (list-ref line 6)) 
-				(helpful-message (car line))
+				(error-message (car line))
 			)
 		)
 		(else 
-			(helpful-message (car line))
+			(error-message (car line))
 		)
 	)
 ))

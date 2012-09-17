@@ -1,3 +1,10 @@
+; dbfileutils.scm
+; Amanda Priscilla Araujo da Silva
+; Joao Felipe Nicolaci Pimentel
+; This file contains operations that are made in the files
+
+
+
 ; This function searchs for a data filename (dat) in a opened port of a repository file (rep-port)
 ; The repository file should be sorted
 (define find-in-file (lambda (dat rep-port)  
